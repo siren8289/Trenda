@@ -1,42 +1,25 @@
 package com.example.service.build.roadmap;
 
-import com.example.service.user.User;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
-@Table(name = "roadmaps")
 @Getter
-@Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class Roadmap {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    private Long userId;       // 대상 유저 번호
+    private String title;      // 로드맵 제목 (예: "백엔드 개발자 입문 코스")
+    private String stepContent; // 단계별 상세 설명 (예: "1단계: 자바 기초, 2단계: 스프링")
 
-    @Column(nullable = false, length = 150)
-    private String title;
-
-    @Column(columnDefinition = "TEXT")
-    private String content;
+    public Roadmap(Long userId, String title, String stepContent) {
+        this.userId = userId;
+        this.title = title;
+        this.stepContent = stepContent;
+    }
 }
-

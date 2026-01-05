@@ -1,24 +1,18 @@
 spring:
-  application:
-    name: Trenda Backend
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:trenda}
-    username: ${POSTGRES_USER:trenda}
-    password: ${POSTGRES_PASSWORD:trenda}
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
   jpa:
     hibernate:
       ddl-auto: update
-    open-in-view: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-  sql:
-    init:
-      mode: never
+    database-platform: org.hibernate.dialect.H2Dialect
+
   flyway:
-    enabled: true
+    enabled: false
+
     locations: classpath:db/migration
     baseline-on-migrate: true
     schemas: public
