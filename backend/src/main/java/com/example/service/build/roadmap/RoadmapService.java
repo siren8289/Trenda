@@ -1,36 +1,23 @@
 package com.example.service.build.roadmap;
 
-import com.example.service.user.User;
-import com.example.service.user.UserService;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import java.util.List;
 
 @Service
-@Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class RoadmapService {
 
     private final RoadmapRepository roadmapRepository;
-    private final UserService userService;
 
-    public RoadmapService(RoadmapRepository roadmapRepository, UserService userService) {
-        this.roadmapRepository = roadmapRepository;
-        this.userService = userService;
-    }
-
-    public List<Roadmap> findByUser(Long userId) {
+    // 유저 로드맵 조회
+    public List<Roadmap> getUserRoadmaps(Long userId) {
         return roadmapRepository.findByUserId(userId);
     }
 
-    @Transactional
-    public Roadmap create(Long userId, String title, String content) {
-        User user = userService.findById(userId);
-        Roadmap roadmap = Roadmap.builder()
-                .user(user)
-                .title(title)
-                .content(content)
-                .build();
+    // 로드맵 생성
+    public Roadmap createRoadmap(Long userId, String title, String content) {
+        Roadmap roadmap = new Roadmap(userId, title, content);
         return roadmapRepository.save(roadmap);
     }
 }
-
