@@ -1,33 +1,42 @@
 package com.example.service.play.question;
 
-import com.example.service.common.response.ApiResponse;
-import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/play/questions")
+@RequestMapping("/api/questions")
+@RequiredArgsConstructor
 public class QuestionController {
-
     private final QuestionService questionService;
 
-    public QuestionController(QuestionService questionService) {
-        this.questionService = questionService;
+    // 👇 반환 타입만 DTO로 변경
+    @GetMapping
+    public ResponseEntity<List<QuestionResponse>> list() {
+        List<QuestionResponse> questions = questionService.getAllQuestions();
+        return ResponseEntity.ok(questions);
     }
 
-    @GetMapping("/game/{gameId}")
-    public ApiResponse<List<Question>> findByGame(@PathVariable Long gameId) {
-        return ApiResponse.success(questionService.findByGame(gameId));
-    }
-
+    // 👇 @RequestBody로 변경 (JSON으로 받기)
     @PostMapping
-    public ApiResponse<Question> create(@Valid @RequestBody Question question) {
-        return ApiResponse.success(questionService.save(question));
+    public ResponseEntity<QuestionResponse> add(
+            @RequestBody QuestionCreateRequest request) {
+
+        QuestionResponse created = questionService.createQuestion(request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(created);
+    }
+
+    // 👇 예외 처리 추가
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ex.getMessage());
     }
 }
-

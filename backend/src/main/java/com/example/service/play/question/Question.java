@@ -1,47 +1,38 @@
 package com.example.service.play.question;
 
-import com.example.service.play.game.Game;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Table(name = "questions")
 @Getter
-@Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class Question {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "game_id")
-    private Game game;
+    // FK: games.id (nullable)
+    @Column(name = "game_id")
+    private Long gameId;
 
-    @NotBlank
-    @Column(nullable = false, columnDefinition = "TEXT")
+    // NOT NULL 컬럼
+    @Column(nullable = false)
     private String content;
 
-    @Column(columnDefinition = "TEXT")
+    // nullable
     private String answer;
 
-    @Column(length = 30)
+    // nullable
     private String difficulty;
-}
 
+    // 생성자 (DB 스키마에 맞게 수정)
+    public Question(Long gameId, String content, String answer, String difficulty) {
+        this.gameId = gameId;
+        this.content = content;
+        this.answer = answer;
+        this.difficulty = difficulty;
+    }
+}

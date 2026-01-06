@@ -1,9 +1,9 @@
 package com.example.service.play.question;
 
-import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface QuestionRepository extends JpaRepository<Question, Long> {
-    List<Question> findByGameId(Long gameId);
-}
 
+    // 협업 스키마 기준 중복 체크(선택)
+    boolean existsByGameIdAndContent(Long gameId, String content);
+}

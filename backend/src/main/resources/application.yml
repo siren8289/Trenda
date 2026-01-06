@@ -3,8 +3,8 @@ spring:
     name: Trenda Backend
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:trenda}
-    username: ${POSTGRES_USER:trenda}
-    password: ${POSTGRES_PASSWORD:trenda}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
