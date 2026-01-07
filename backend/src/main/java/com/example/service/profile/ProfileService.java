@@ -36,7 +36,7 @@ public class ProfileService {
         User user = userService.findById(userId);
         List<PlayRecord> playRecords = playService.findByUser(userId);
         List<Portfolio> portfolios = portfolioService.findByUser(userId);
-        List<Roadmap> roadmaps = roadmapService.findByUser(userId);
+        List<Roadmap> roadmaps = roadmapService.getUserRoadmaps(userId);
         return new ProfileView(user, playRecords, portfolios, roadmaps);
     }
 
