@@ -1,5 +1,5 @@
 import { ArrowRight, Zap, Code } from 'lucide-react';
-import { Button } from '../../../ui/button';
+import { Button } from '../../ui/button';
 import { motion } from 'motion/react';
 
 interface HeroSectionProps {

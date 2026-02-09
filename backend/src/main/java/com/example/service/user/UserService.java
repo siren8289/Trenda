@@ -26,13 +26,29 @@ public class UserService {
                 .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
     }
 
+    public User findByEmail(String email) {
+        if (email == null) {
+            throw new CustomException("User not found", HttpStatus.NOT_FOUND);
+        }
+        String normalized = email.trim().toLowerCase();
+        return userRepository.findByEmailIgnoreCase(normalized)
+                .or(() -> userRepository.findByEmail(normalized))
+                .orElseThrow(() -> new CustomException("User not found", HttpStatus.NOT_FOUND));
+    }
+
     @Transactional
     public User create(User user) {
-
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            throw new CustomException("Email is required", HttpStatus.BAD_REQUEST);
+        }
+        String normalizedEmail = user.getEmail().trim().toLowerCase();
+        if (userRepository.findByEmailIgnoreCase(normalizedEmail).isPresent()) {
             throw new CustomException("Email already exists", HttpStatus.CONFLICT);
         }
-
+        user.setEmail(normalizedEmail);
+        if (user.getDisplayName() != null) {
+            user.setDisplayName(user.getDisplayName().trim());
+        }
         return userRepository.save(user);
     }
 }

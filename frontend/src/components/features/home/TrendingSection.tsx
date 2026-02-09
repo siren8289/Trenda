@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { TrendingUp, Share2, Clock, Eye, Heart, Sparkles } from 'lucide-react';
-import { Button } from '../../../ui/button';
-import { Card } from '../../../ui/card';
+import { Button } from '../../ui/button';
+import { Card } from '../../ui/card';
 import { motion } from 'motion/react';
-import { Badge } from '../../../ui/badge'; // Badge import might not be used in the new design but keeping it if needed, actually removed in last design
+import { Badge } from '../../ui/badge'; // Badge import might not be used in the new design but keeping it if needed, actually removed in last design
 
 interface TrendingCardData {
   id: number;

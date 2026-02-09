@@ -1,14 +1,11 @@
+# datasource는 application.yml에 두지 않음. ServiceApplication.main()에서만 설정:
+# - Render: DATABASE_URL 있으면 → JDBC 변환 후 주입
+# - 로컬: DATABASE_URL 없으면 → localhost:5432/trenda 주입 (docker-compose)
 spring:
-  datasource:
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-
   jpa:
     hibernate:
       ddl-auto: update
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: ${SPRING_JPA_DATABASE_PLATFORM:org.hibernate.dialect.PostgreSQLDialect}
 
   flyway:
     enabled: false
@@ -17,8 +14,9 @@ spring:
     baseline-on-migrate: true
     schemas: public
 
+# Render: 반드시 $PORT 에 바인딩해야 "No open ports detected" 로 종료되지 않음. 로컬은 8080
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${PORT:8080}
 
 management:
   endpoints:
@@ -34,3 +32,10 @@ logging:
   level:
     org.springframework: INFO
 
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    display-request-duration: true

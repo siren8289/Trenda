@@ -27,9 +27,9 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { useState } from 'react';
-import { Input } from '../../ui/input';
-import { Button } from '../../ui/button';
-import { Avatar, AvatarFallback } from '../../ui/avatar';
+import { Input } from '../ui/input';
+import { Button } from '../ui/button';
+import { Avatar, AvatarFallback } from '../ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,10 +37,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '../../ui/dropdown-menu';
+} from '../ui/dropdown-menu';
 
 // QuizComponent export
-export { QuizComponent } from './QuizComponent';
+export { QuizComponent } from "./QuizComponent";
 
 // ========================
 // GlobalHeader Component

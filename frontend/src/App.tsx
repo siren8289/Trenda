@@ -1,57 +1,56 @@
-"use client";
-
-import "./styles/globals.css";
 import { useState } from "react";
 import { Header } from "./shared/layout/Header";
 import { Footer } from "./shared/layout/Footer";
+import type { User } from "@/shared/api/types";
 
 // Pages
-import HomePage from "./_pages/index";
-import ExplorePage from "./_pages/explore";
-import CategoryPage from "./_pages/category";
-import PatternPage from "./_pages/pattern";
-import DemoPage from "./_pages/demo";
-import EditorPage from "./_pages/editor";
-import MyDemosPage from "./_pages/my-demos";
-import FavoritesPage from "./_pages/favorites";
-import ProfilePage from "./_pages/profile";
-import LoginPage from "./_pages/login";
-import SignupPage from "./_pages/signup";
-import TrendsPage from "./_pages/trends";
-import TrendDetailPage from "./_pages/trend-detail";
-import CreateTrendPage from "./_pages/create-trend";
-import TrendReportPage from "./_pages/trend-report";
-import TrendFlashPage from "./_pages/trend-flash";
-import CodeFlashPage from "./_pages/code-flash";
-import ProjectArchivePage from "./_pages/project-archive";
-import ProjectDetailPage from "./_pages/project-detail";
-import GameSelectPage from "./_pages/game-select";
-import QuestionTypeSelectPage from "./_pages/question-type-select";
-import GamePlayPage from "./_pages/game-play";
-import GameSummaryPage from "./_pages/game-summary";
-import LevelTestPage from "./_pages/level-test";
-import ResourcesPage from "./_pages/resources";
-import TrendResearchPage from "./_pages/trend-research";
-import CommunityContestPage from "./_pages/community-contest";
-import AdminReviewPage from "./_pages/admin-review";
-import AdminDashboardPage from "./_pages/admin-dashboard";
-import PlayPage from "./_pages/play";
-import BuildPage from "./_pages/build";
-import BuildEntryPage from "./_pages/build-entry";
-import RoadmapGeneratorPage from "./_pages/roadmap-generator";
-import PortfolioManagerPage from "./_pages/portfolio-manager";
-import MyPage from "./_pages/mypage";
-import NotificationsPage from "./_pages/notifications";
-import PremiumPage from "./_pages/premium";
-import AIGeneratePage from "./_pages/ai-generate";
-import ResourceDetailPage from "./_pages/resource-detail";
-import LearningHubPage from "./_pages/learning-hub";
+import HomePage from "./views/index";
+import ExplorePage from "./views/explore";
+import CategoryPage from "./views/category";
+import PatternPage from "./views/pattern";
+import DemoPage from "./views/demo";
+import EditorPage from "./views/editor";
+import MyDemosPage from "./views/my-demos";
+import FavoritesPage from "./views/favorites";
+import ProfilePage from "./views/profile";
+import LoginPage from "./views/login";
+import SignupPage from "./views/signup";
+import TrendsPage from "./views/trends";
+import TrendDetailPage from "./views/trend-detail";
+import CreateTrendPage from "./views/create-trend";
+import TrendReportPage from "./views/trend-report";
+import TrendFlashPage from "./views/trend-flash";
+import CodeFlashPage from "./views/code-flash";
+import ProjectArchivePage from "./views/project-archive";
+import ProjectDetailPage from "./views/project-detail";
+import GameSelectPage from "./views/game-select";
+import QuestionTypeSelectPage from "./views/question-type-select";
+import GamePlayPage from "./views/game-play";
+import GameSummaryPage from "./views/game-summary";
+import LevelTestPage from "./views/level-test";
+import ResourcesPage from "./views/resources";
+import TrendResearchPage from "./views/trend-research";
+import CommunityContestPage from "./views/community-contest";
+import AdminReviewPage from "./views/admin-review";
+import AdminDashboardPage from "./views/admin-dashboard";
+import PlayPage from "./views/play";
+import BuildPage from "./views/build";
+import BuildEntryPage from "./views/build-entry";
+import RoadmapGeneratorPage from "./views/roadmap-generator";
+import PortfolioManagerPage from "./views/portfolio-manager";
+import MyPage from "./views/mypage";
+import NotificationsPage from "./views/notifications";
+import PremiumPage from "./views/premium";
+import AIGeneratePage from "./views/ai-generate";
+import ResourceDetailPage from "./views/resource-detail";
+import LearningHubPage from "./views/learning-hub";
 
 export default function App() {
   const [currentView, setCurrentView] = useState<string>("login");
   const [viewParams, setViewParams] = useState<any>({});
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   const handleNavigate = (page: string, params?: any) => {
     setCurrentView(page);
@@ -60,8 +59,9 @@ export default function App() {
     }
   };
 
-  const handleLogin = (asAdmin?: boolean) => {
+  const handleLogin = (user: User, asAdmin?: boolean) => {
     setIsLoggedIn(true);
+    setCurrentUser(user);
     if (asAdmin) {
       setIsAdmin(true);
       setCurrentView("admin-dashboard");
@@ -73,6 +73,7 @@ export default function App() {
   const handleLogout = () => {
     setIsLoggedIn(false);
     setIsAdmin(false);
+    setCurrentUser(null);
     setCurrentView("login");
   };
 
@@ -80,9 +81,9 @@ export default function App() {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
          {currentView === "login" ? (
-           <LoginPage onNavigate={handleNavigate} onLogin={handleLogin} />
+           <LoginPage onNavigate={handleNavigate} onLogin={handleLogin} signedUpJustNow={viewParams?.signedUp === true} />
          ) : (
-           <SignupPage onNavigate={handleNavigate} onSignup={() => handleLogin(false)} />
+          <SignupPage onNavigate={handleNavigate} onSignupSuccess={() => handleNavigate('login', { signedUp: true })} />
          )}
       </div>
     );
@@ -113,7 +114,9 @@ export default function App() {
         {currentView === "editor" && <EditorPage onNavigate={handleNavigate} />}
         {currentView === "my-demos" && <MyDemosPage onNavigate={handleNavigate} />}
         {currentView === "favorites" && <FavoritesPage onNavigate={handleNavigate} />}
-        {currentView === "mypage" && <ProfilePage onNavigate={handleNavigate} />}
+        {currentView === "mypage" && currentUser && (
+          <ProfilePage onNavigate={handleNavigate} user={currentUser} />
+        )}
         
         {/* Fallback for routes not explicitly in the new list but linked in UI */}
         {currentView === "trends" && <TrendsPage onNavigate={handleNavigate} />}
@@ -130,9 +133,15 @@ export default function App() {
         {currentView === "community-contest" && <CommunityContestPage onNavigate={handleNavigate} />}
         {currentView === "admin-review" && <AdminReviewPage onNavigate={handleNavigate} onLogout={handleLogout} />}
         {currentView === "build-entry" && <BuildEntryPage onNavigate={handleNavigate} />}
-        {currentView === "roadmap-generator" && <RoadmapGeneratorPage onNavigate={handleNavigate} />}
-        {currentView === "portfolio-manager" && <PortfolioManagerPage onNavigate={handleNavigate} />}
-        {currentView === "mypage" && <ProfilePage onNavigate={handleNavigate} />}
+        {currentView === "roadmap-generator" && currentUser && (
+          <RoadmapGeneratorPage onNavigate={handleNavigate} user={currentUser} />
+        )}
+        {currentView === "portfolio-manager" && currentUser && (
+          <PortfolioManagerPage onNavigate={handleNavigate} user={currentUser} />
+        )}
+        {currentView === "mypage" && currentUser && (
+          <ProfilePage onNavigate={handleNavigate} user={currentUser} />
+        )}
         {currentView === "notifications" && <NotificationsPage onNavigate={handleNavigate} />}
         {currentView === "premium" && <PremiumPage onNavigate={handleNavigate} />}
         {currentView === "ai-generate" && <AIGeneratePage onNavigate={handleNavigate} />}
@@ -148,4 +157,3 @@ export default function App() {
     </div>
   );
 }
-

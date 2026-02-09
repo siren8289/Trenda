@@ -1,22 +1,34 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mail, Lock, Chrome, TrendingUp, Github, Facebook, Check, ArrowRight, ArrowLeft, User, ShieldCheck, Briefcase, Code, PenTool, Layout } from 'lucide-react';
+import { Mail, Lock, Chrome, TrendingUp, Github, Facebook, Check, ArrowRight, ArrowLeft, User as UserIcon, ShieldCheck, Briefcase, Code, PenTool, Layout } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Label } from '../../ui/label';
 import { Checkbox } from '../../ui/checkbox';
 import { Separator } from '../../ui/separator';
 import { Card } from '../../ui/card';
+import { apiClient } from '@/shared/api/client';
+import { normalizeUser } from '@/shared/api/types';
 
 interface SignupViewProps {
   onNavigate: (page: string) => void;
-  onSignup: (asAdmin?: boolean) => void;
+  /** 회원가입 성공 시 호출 (자동 로그인 없이 로그인 페이지로 이동용) */
+  onSignupSuccess?: () => void;
 }
 
-export function SignupView({ onNavigate, onSignup }: SignupViewProps) {
+export function SignupView({ onNavigate, onSignupSuccess }: SignupViewProps) {
   const [step, setStep] = useState(1);
   const [accountType, setAccountType] = useState<'user' | 'admin'>('user');
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [termsAll, setTermsAll] = useState(false);
+  const [termsService, setTermsService] = useState(false);
+  const [termsPrivacy, setTermsPrivacy] = useState(false);
+  const [termsMarketing, setTermsMarketing] = useState(false);
 
   const toggleInterest = (interest: string) => {
     if (selectedInterests.includes(interest)) {
@@ -28,6 +40,49 @@ export function SignupView({ onNavigate, onSignup }: SignupViewProps) {
 
   const handleNext = () => setStep(prev => prev + 1);
   const handleBack = () => setStep(prev => prev - 1);
+
+  const handleCompleteSignup = async () => {
+    if (!email.trim() || !name.trim()) {
+      setError("이메일과 이름을 모두 입력해주세요.");
+      setStep(2);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const raw = await apiClient.post<unknown>("/api/users", {
+        body: {
+          email: email.trim(),
+          displayName: name.trim(),
+        },
+      });
+
+      const user = normalizeUser(raw);
+      if (!user) {
+        setError("회원가입에 실패했습니다. 응답 형식을 확인해주세요.");
+        return;
+      }
+
+      // 가입만 완료하고 로그인 페이지로 이동 (자동 로그인 안 함)
+      onSignupSuccess?.();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "서버 오류가 발생했습니다.";
+      const isNetworkError =
+        /load failed|failed to fetch|networkerror|network error|연결/i.test(msg) ||
+        msg === "Load failed";
+      setError(
+        isNetworkError
+          ? "서버에 연결할 수 없습니다. 인터넷 연결을 확인하고, 백엔드 서버가 실행 중인지 확인해주세요."
+          : msg.includes("already exists") || msg.includes("이미")
+          ? "이미 가입된 이메일입니다."
+          : msg
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const renderStepContent = () => {
     switch(step) {
@@ -42,7 +97,7 @@ export function SignupView({ onNavigate, onSignup }: SignupViewProps) {
               >
                 <div className="flex flex-col items-center gap-4 py-6">
                   <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors ${accountType === 'user' ? 'bg-[#1CB0F6] text-white' : 'bg-gray-100 text-gray-500'}`}>
-                    <User size={28} />
+                    <UserIcon size={28} />
                   </div>
                   <div className="text-center">
                     <h4 className="font-bold text-gray-900 text-lg">일반 회원</h4>
@@ -81,6 +136,8 @@ export function SignupView({ onNavigate, onSignup }: SignupViewProps) {
                   type="email" 
                   placeholder="name@example.com" 
                   className="bg-gray-50 border-gray-200 focus:border-[#1CB0F6] focus:ring-[#1CB0F6]/20 h-12 text-base rounded-xl px-4"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
@@ -90,6 +147,8 @@ export function SignupView({ onNavigate, onSignup }: SignupViewProps) {
                   type="text" 
                   placeholder="홍길동" 
                   className="bg-gray-50 border-gray-200 focus:border-[#1CB0F6] focus:ring-[#1CB0F6]/20 h-12 text-base rounded-xl px-4"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
@@ -99,6 +158,8 @@ export function SignupView({ onNavigate, onSignup }: SignupViewProps) {
                   type="password" 
                   placeholder="8자 이상 입력" 
                   className="bg-gray-50 border-gray-200 focus:border-[#1CB0F6] focus:ring-[#1CB0F6]/20 h-12 text-base rounded-xl px-4"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
             </div>
@@ -172,6 +233,13 @@ export function SignupView({ onNavigate, onSignup }: SignupViewProps) {
         }
 
       case 4: // Terms
+        const handleAllTermsChange = (checked: boolean | "indeterminate") => {
+          const value = checked === true;
+          setTermsAll(value);
+          setTermsService(value);
+          setTermsPrivacy(value);
+          setTermsMarketing(value);
+        };
         return (
           <div className="space-y-6">
             <h3 className="text-xl font-bold text-gray-900 mb-2">약관 동의</h3>
@@ -180,7 +248,12 @@ export function SignupView({ onNavigate, onSignup }: SignupViewProps) {
                 <label htmlFor="all-terms" className="text-gray-900 cursor-pointer font-bold text-base">
                   전체 약관 동의
                 </label>
-                <Checkbox id="all-terms" className="h-6 w-6 rounded-md data-[state=checked]:bg-[#1CB0F6] data-[state=checked]:border-[#1CB0F6]" />
+                <Checkbox
+                  id="all-terms"
+                  className="h-6 w-6 rounded-md data-[state=checked]:bg-[#1CB0F6] data-[state=checked]:border-[#1CB0F6]"
+                  checked={termsAll}
+                  onCheckedChange={handleAllTermsChange}
+                />
               </div>
 
               <Separator className="bg-gray-200" />
@@ -190,19 +263,46 @@ export function SignupView({ onNavigate, onSignup }: SignupViewProps) {
                   <label htmlFor="terms-service" className="text-gray-700 cursor-pointer text-sm flex-1">
                     <span className="text-[#1CB0F6] font-semibold">서비스 이용약관</span> (필수)
                   </label>
-                  <Checkbox id="terms-service" className="data-[state=checked]:bg-[#1CB0F6]" />
+                  <Checkbox
+                    id="terms-service"
+                    className="data-[state=checked]:bg-[#1CB0F6]"
+                    checked={termsService}
+                    onCheckedChange={(checked) => {
+                      setTermsService(checked === true);
+                      if (!(checked === true)) setTermsAll(false);
+                      else if (termsPrivacy) setTermsAll(true);
+                    }}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <label htmlFor="terms-privacy" className="text-gray-700 cursor-pointer text-sm flex-1">
                     <span className="text-[#1CB0F6] font-semibold">개인정보 수집 및 이용</span> (필수)
                   </label>
-                  <Checkbox id="terms-privacy" className="data-[state=checked]:bg-[#1CB0F6]" />
+                  <Checkbox
+                    id="terms-privacy"
+                    className="data-[state=checked]:bg-[#1CB0F6]"
+                    checked={termsPrivacy}
+                    onCheckedChange={(checked) => {
+                      setTermsPrivacy(checked === true);
+                      if (!(checked === true)) setTermsAll(false);
+                      else if (termsService) setTermsAll(true);
+                    }}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <label htmlFor="terms-marketing" className="text-gray-700 cursor-pointer text-sm flex-1">
                     마케팅 정보 수신 (선택)
                   </label>
-                  <Checkbox id="terms-marketing" className="data-[state=checked]:bg-[#1CB0F6]" />
+                  <Checkbox
+                    id="terms-marketing"
+                    className="data-[state=checked]:bg-[#1CB0F6]"
+                    checked={termsMarketing}
+                    onCheckedChange={(checked) => {
+                      setTermsMarketing(checked === true);
+                      if (checked === true && termsService && termsPrivacy) setTermsAll(true);
+                      else if (!(checked === true)) setTermsAll(false);
+                    }}
+                  />
                 </div>
               </div>
             </div>
@@ -299,14 +399,21 @@ export function SignupView({ onNavigate, onSignup }: SignupViewProps) {
               </Button>
             ) : (
               <Button 
-                onClick={() => onSignup(accountType === 'admin')} 
+                onClick={handleCompleteSignup}
                 className="flex-1 h-12 rounded-xl text-base font-bold shadow-lg shadow-blue-500/20 bg-[#1CB0F6] hover:bg-[#0D8FCC]"
+                disabled={isSubmitting}
               >
-                가입 완료
+                {isSubmitting ? "가입 중..." : "가입 완료"}
                 <Check className="w-5 h-5 ml-2" />
               </Button>
             )}
           </div>
+
+          {error && (
+            <p className="text-sm text-red-500 mt-3 px-1">
+              {error}
+            </p>
+          )}
 
           {/* Login Link */}
           <div className="text-center mt-8 pt-6 border-t border-gray-100">

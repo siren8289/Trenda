@@ -1,6 +1,6 @@
 import { ArrowRight } from 'lucide-react';
-import { Card } from '../../../ui/card';
-import { Badge } from '../../../ui/badge';
+import { Card } from '../../ui/card';
+import { Badge } from '../../ui/badge';
 import { motion } from 'motion/react';
 
 interface PlayTool {
